@@ -275,9 +275,8 @@ public class ArticleDetailFragment extends Fragment implements
 //            WebView myWebView = (WebView) mRootView.findViewById(R.id.webview_reader);
 //            myWebView.loadData(html, "text/html", "UTF-8");
 
-            String html = mCursor.getString(ArticleLoader.Query.BODY).replaceAll("(\r\n\r\n|\n\n)", "<br /><br />");
-            //String html = " 1 \r\n\r\n|\n\n 2";
-            mChunks = html.split("<br /><br />");
+            String html = Html.fromHtml(mCursor.getString(ArticleLoader.Query.BODY).replaceAll("(\r\n\r\n|\n\n)", "<br /><br />")).toString();
+            mChunks = html.split("(\r\n\r\n|\n\n)");
             ImageLoaderHelper.getInstance(getActivity()).getImageLoader()
                     .get(mCursor.getString(ArticleLoader.Query.PHOTO_URL), new ImageLoader.ImageListener() {
                         @Override

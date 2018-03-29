@@ -21,3 +21,7 @@ public class Config {
         BASE_URL = url;
     }
 }
+
+
+//https://go.udacity.com/xyz-reader-json
+//https://raw.githubusercontent.com/TNTest/xyzreader/master/data.json

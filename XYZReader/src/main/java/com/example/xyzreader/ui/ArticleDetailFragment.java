@@ -1,7 +1,9 @@
+
 package com.example.xyzreader.ui;
 
 import android.app.Fragment;
 import android.app.LoaderManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
@@ -10,10 +12,13 @@ import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ShareCompat;
 import android.support.v7.graphics.Palette;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.text.Html;
 import android.text.format.DateUtils;
 import android.text.method.LinkMovementMethod;
@@ -54,6 +59,7 @@ public class ArticleDetailFragment extends Fragment implements
     private DrawInsetsFrameLayout mDrawInsetsFrameLayout;
     private ColorDrawable mStatusBarColorDrawable;
     private FloatingActionButton fab;
+    private RecyclerView mRecyclerView;
 
     private int mTopInset;
     private View mPhotoContainerView;
@@ -61,12 +67,17 @@ public class ArticleDetailFragment extends Fragment implements
     private int mScrollY;
     private boolean mIsCard = false;
     private int mStatusBarFullOpacityBottom;
+    private LinearLayoutManager mLayoutManager;
+    private Adapter mAdapter;
+    String[] mChunks;
+
+    Typeface rosario;
 
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.sss");
     // Use default locale format
     private SimpleDateFormat outputFormat = new SimpleDateFormat();
     // Most time functions can only handle 1902 - 2037
-    private GregorianCalendar START_OF_EPOCH = new GregorianCalendar(2,1,1);
+    private GregorianCalendar START_OF_EPOCH = new GregorianCalendar(2, 1, 1);
 
 
     /**
@@ -85,6 +96,12 @@ public class ArticleDetailFragment extends Fragment implements
     }
 
     @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        rosario = Typeface.createFromAsset(getResources().getAssets(), "Rosario-Regular.ttf");
+    }
+
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
@@ -93,9 +110,14 @@ public class ArticleDetailFragment extends Fragment implements
         }
 
         mIsCard = getResources().getBoolean(R.bool.detail_is_card);
-        mStatusBarFullOpacityBottom = getResources().getDimensionPixelSize(
-                R.dimen.detail_card_top_margin);
+//        mStatusBarFullOpacityBottom = getResources().getDimensionPixelSize(
+//                R.dimen.detail_card_top_margin);
+        if (Build.VERSION.SDK_INT >= 21) {
+            getActivity().getWindow().setStatusBarColor(Color.TRANSPARENT);
+        }
         setHasOptionsMenu(true);
+
+        Log.d(TAG, "fragment started oncreate");
     }
 
     public ArticleDetailActivity getActivityCast() {
@@ -115,7 +137,7 @@ public class ArticleDetailFragment extends Fragment implements
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
-            Bundle savedInstanceState) {
+                             Bundle savedInstanceState) {
         mRootView = inflater.inflate(R.layout.fragment_article_detail, container, false);
         mDrawInsetsFrameLayout = (DrawInsetsFrameLayout)
                 mRootView.findViewById(R.id.draw_insets_frame_layout);
@@ -137,6 +159,12 @@ public class ArticleDetailFragment extends Fragment implements
             }
         });
 
+        mRecyclerView = (RecyclerView) mRootView.findViewById(R.id.recycler_view_body);
+        mLayoutManager = new LinearLayoutManager(getActivity());
+        mRecyclerView.setLayoutManager(mLayoutManager);
+        mRecyclerView.setHasFixedSize(true);
+
+
         mPhotoView = (ImageView) mRootView.findViewById(R.id.photo);
         mPhotoContainerView = mRootView.findViewById(R.id.photo_container);
 
@@ -155,6 +183,9 @@ public class ArticleDetailFragment extends Fragment implements
         });
 
         bindViews();
+        Log.d(TAG, "fragment started oncreateview");
+        mAdapter = new Adapter(mChunks);
+        mRecyclerView.setAdapter(mAdapter);
         updateStatusBar();
         return mRootView;
     }
@@ -207,15 +238,16 @@ public class ArticleDetailFragment extends Fragment implements
         TextView titleView = (TextView) mRootView.findViewById(R.id.article_title);
         TextView bylineView = (TextView) mRootView.findViewById(R.id.article_byline);
         bylineView.setMovementMethod(new LinkMovementMethod());
-        TextView bodyView = (TextView) mRootView.findViewById(R.id.article_body);
+        //HtmlTextView bodyView = (HtmlTextView) mRootView.findViewById(R.id.article_body);
 
-        bodyView.setTypeface(Typeface.createFromAsset(getResources().getAssets(), "Rosario-Regular.ttf"));
+        //bodyView.setTypeface(rosario);
 
         if (mCursor != null) {
             mRootView.setAlpha(0);
             mRootView.setVisibility(View.VISIBLE);
             mRootView.animate().alpha(1);
             titleView.setText(mCursor.getString(ArticleLoader.Query.TITLE));
+
             Date publishedDate = parsePublishedDate();
             if (!publishedDate.before(START_OF_EPOCH.getTime())) {
                 bylineView.setText(Html.fromHtml(
@@ -231,11 +263,21 @@ public class ArticleDetailFragment extends Fragment implements
                 // If date is before 1902, just show the string
                 bylineView.setText(Html.fromHtml(
                         outputFormat.format(publishedDate) + " by <font color='#ffffff'>"
-                        + mCursor.getString(ArticleLoader.Query.AUTHOR)
+                                + mCursor.getString(ArticleLoader.Query.AUTHOR)
                                 + "</font>"));
-
             }
-            //bodyView.setText(Html.fromHtml(mCursor.getString(ArticleLoader.Query.BODY).replaceAll("(\r\n|\n)", "<br />")));
+
+            //bodyView.setHtml(String.valueOf(Html.fromHtml(mCursor.getString(ArticleLoader.Query.BODY).replaceAll("(\r\n\r\n|\n\n)", "<br /><br />"))));
+//            StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder() .detectAll() .penaltyLog() .penaltyDropBox()
+//                    .build()); StrictMode.setThreadPolicy(new StrictMode .ThreadPolicy .Builder() .detectAll()
+//                    .penaltyLog() .penaltyFlashScreen() .penaltyDialog() .build());
+//            String html = Html.fromHtml(mCursor.getString(ArticleLoader.Query.BODY).replaceAll("(\r\n\r\n|\n\n)", "<br /><br />")).toString();
+//            WebView myWebView = (WebView) mRootView.findViewById(R.id.webview_reader);
+//            myWebView.loadData(html, "text/html", "UTF-8");
+
+            String html = mCursor.getString(ArticleLoader.Query.BODY).replaceAll("(\r\n\r\n|\n\n)", "<br /><br />");
+            //String html = " 1 \r\n\r\n|\n\n 2";
+            mChunks = html.split("<br /><br />");
             ImageLoaderHelper.getInstance(getActivity()).getImageLoader()
                     .get(mCursor.getString(ArticleLoader.Query.PHOTO_URL), new ImageLoader.ImageListener() {
                         @Override
@@ -259,8 +301,8 @@ public class ArticleDetailFragment extends Fragment implements
         } else {
             mRootView.setVisibility(View.GONE);
             titleView.setText("N/A");
-            bylineView.setText("N/A" );
-            bodyView.setText("N/A");
+            bylineView.setText("N/A");
+            //bodyView.setHtml("N/A");
         }
     }
 
@@ -304,4 +346,38 @@ public class ArticleDetailFragment extends Fragment implements
                 ? (int) mPhotoContainerView.getTranslationY() + mPhotoView.getHeight() - mScrollY
                 : mPhotoView.getHeight() - mScrollY;
     }
+
+
+    private class Adapter extends RecyclerView.Adapter<ArticleDetailFragment.ViewHolder> {
+
+        public Adapter(String[] chunk) {
+            mChunks = chunk;
+        }
+
+        @Override
+        public ArticleDetailFragment.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            View view = getActivity().getLayoutInflater().inflate(R.layout.list_item_chunk_text, parent, false);
+            return new ArticleDetailFragment.ViewHolder(view);
+        }
+
+        @Override
+        public void onBindViewHolder(ViewHolder holder, int position) {
+             holder.chunkTextView.setText(mChunks[position]);
+        }
+
+        @Override
+        public int getItemCount() {
+            return mChunks.length;
+        }
+    }
+
+    public static class ViewHolder extends RecyclerView.ViewHolder {
+        public TextView chunkTextView;
+
+        public ViewHolder(View view) {
+            super(view);
+            chunkTextView = (TextView) view.findViewById(R.id.article_body);
+        }
+    }
 }
+

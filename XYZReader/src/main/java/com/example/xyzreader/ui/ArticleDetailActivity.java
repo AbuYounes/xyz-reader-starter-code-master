@@ -60,6 +60,9 @@ public class ArticleDetailActivity extends AppCompatActivity
                 mStartId = ItemsContract.Items.getItemId(getIntent().getData());
                 mSelectedItemId = mStartId;
             }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                postponeEnterTransition();
+            }
         }
 
         getLoaderManager().initLoader(0, null, this);

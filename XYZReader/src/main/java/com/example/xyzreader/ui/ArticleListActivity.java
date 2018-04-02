@@ -13,7 +13,6 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
-import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.text.format.DateUtils;
 import android.util.Log;
@@ -38,10 +37,9 @@ import java.util.GregorianCalendar;
  * activity presents a grid of items as cards.
  */
 public class ArticleListActivity extends AppCompatActivity implements
-        LoaderManager.LoaderCallbacks<Cursor>, SwipeRefreshLayout.OnRefreshListener{
+        LoaderManager.LoaderCallbacks<Cursor>, SwipeRefreshLayout.OnRefreshListener {
 
     private static final String TAG = ArticleListActivity.class.toString();
-    private Toolbar mToolbar;
     AppBarLayout appBarLayout;
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private RecyclerView mRecyclerView;
@@ -50,7 +48,8 @@ public class ArticleListActivity extends AppCompatActivity implements
     // Use default locale format
     private SimpleDateFormat outputFormat = new SimpleDateFormat();
     // Most time functions can only handle 1902 - 2037
-    private GregorianCalendar START_OF_EPOCH = new GregorianCalendar(2,1,1);
+    private GregorianCalendar START_OF_EPOCH = new GregorianCalendar(2, 1, 1);
+
 
     private boolean mIsRefreshing = false;
 
@@ -69,14 +68,8 @@ public class ArticleListActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_article_list);
 
-        mToolbar = (Toolbar) findViewById(R.id.toolbar);
         appBarLayout = (AppBarLayout) findViewById(R.id.appbar);
-
-
-        //final View toolbarContainerView = findViewById(R.id.toolbar);
-
         mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_refresh_layout);
-
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
         mSwipeRefreshLayout.setOnRefreshListener(this);
         getLoaderManager().initLoader(0, null, this);
@@ -89,6 +82,7 @@ public class ArticleListActivity extends AppCompatActivity implements
     private void refresh() {
         startService(new Intent(this, UpdaterService.class));
     }
+
 
     @Override
     protected void onStart() {
@@ -107,6 +101,7 @@ public class ArticleListActivity extends AppCompatActivity implements
         mSwipeRefreshLayout.setRefreshing(mIsRefreshing);
     }
 
+
     @Override
     public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
         return ArticleLoader.newAllArticlesInstance(this);
@@ -114,7 +109,7 @@ public class ArticleListActivity extends AppCompatActivity implements
 
     @Override
     public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
-        Adapter adapter = new Adapter(cursor);
+        ReaderAdapter adapter = new ReaderAdapter(cursor);
         adapter.setHasStableIds(true);
         mRecyclerView.setAdapter(adapter);
         int columnCount = getResources().getInteger(R.integer.list_column_count);
@@ -134,11 +129,10 @@ public class ArticleListActivity extends AppCompatActivity implements
         refresh();
     }
 
-
-    private class Adapter extends RecyclerView.Adapter<ViewHolder> {
+    private class ReaderAdapter extends RecyclerView.Adapter<ViewHolder> {
         private Cursor mCursor;
 
-        public Adapter(Cursor cursor) {
+        public ReaderAdapter(Cursor cursor) {
             mCursor = cursor;
         }
 
@@ -155,24 +149,27 @@ public class ArticleListActivity extends AppCompatActivity implements
             view.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-//                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-//                            ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(ArticleListActivity.this,
+//                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+//                        ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(ArticleListActivity.this,
 //                                vh.thumbnailView, getString(R.string.transition_photo));
-//                            Intent intent = new Intent(Intent.ACTION_VIEW,
-//                                    ItemsContract.Items.buildItemUri(getItemId(vh.getAdapterPosition())));
-//                            startActivity(intent, options.toBundle());
-//                        }else {
-                            Intent intent = new Intent(Intent.ACTION_VIEW,
-                                    ItemsContract.Items.buildItemUri(getItemId(vh.getAdapterPosition())));
-                            startActivity(intent);
-                       // }
+//                        Intent intent = new Intent(Intent.ACTION_VIEW,
+//                                ItemsContract.Items.buildItemUri(getItemId(vh.getAdapterPosition())));
+//                        startActivity(intent, options.toBundle());
+//                    } else {
+                        Intent intent = new Intent(Intent.ACTION_VIEW,
+                                ItemsContract.Items.buildItemUri(getItemId(vh.getAdapterPosition())));
+                        startActivity(intent);
+                    //}
 
 
                     Log.d(TAG, "intent started to fragment");
                 }
             });
+
             return vh;
+
         }
+
 
         private Date parsePublishedDate() {
             try {
@@ -202,8 +199,8 @@ public class ArticleListActivity extends AppCompatActivity implements
             } else {
                 holder.subtitleView.setText(Html.fromHtml(
                         outputFormat.format(publishedDate)
-                        + "<br/>" + " by "
-                        + mCursor.getString(ArticleLoader.Query.AUTHOR)));
+                                + "<br/>" + " by "
+                                + mCursor.getString(ArticleLoader.Query.AUTHOR)));
             }
             holder.thumbnailView.setImageUrl(
                     mCursor.getString(ArticleLoader.Query.THUMB_URL),
@@ -229,4 +226,5 @@ public class ArticleListActivity extends AppCompatActivity implements
             subtitleView = (TextView) view.findViewById(R.id.article_subtitle);
         }
     }
+
 }

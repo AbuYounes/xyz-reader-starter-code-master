@@ -4,7 +4,6 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.0.1'
-        classpath 'me.tatarka:gradle-retrolambda:3.7.0'
     }
 }
 apply plugin: 'com.android.application'
@@ -39,8 +38,6 @@ dependencies {
     compile 'com.squareup.picasso:picasso:2.5.2'
     compile 'com.jakewharton:butterknife:8.7.0'
     compile 'org.sufficientlysecure:html-textview:3.5'
-    apply plugin: 'com.android.application' //or apply plugin: 'java'
-    apply plugin: 'me.tatarka.retrolambda'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.7.0'
     compile files('libs/volley.jar')
 }

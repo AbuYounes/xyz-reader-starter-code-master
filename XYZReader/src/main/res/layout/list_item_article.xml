@@ -2,6 +2,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_marginLeft="4dp"
     android:layout_marginRight="4dp"
     android:layout_marginTop="4dp"
@@ -17,13 +18,22 @@
         android:orientation="vertical">
 
         <!--suppress AndroidLintContentDescription -->
-        <com.example.xyzreader.ui.DynamicHeightNetworkImageView
+        <!--<com.example.xyzreader.ui.DynamicHeightNetworkImageView-->
+            <!--android:id="@+id/thumbnail"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="0dp"-->
+            <!--android:transitionName="@string/transition_photo"-->
+            <!--android:scaleType="centerCrop"-->
+            <!--android:background="@color/photo_placeholder" />-->
+
+        <ImageView
             android:id="@+id/thumbnail"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:transitionName="@string/transition_photo"
+            android:layout_height="wrap_content"
+            android:background="@color/photo_placeholder"
+            android:adjustViewBounds="true"
             android:scaleType="centerCrop"
-            android:background="@color/photo_placeholder" />
+            tools:ignore="ContentDescription"/>
 
         <TextView
             android:id="@+id/article_title"

@@ -14,6 +14,8 @@ import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ShareCompat;
 import android.support.v7.graphics.Palette;
@@ -26,6 +28,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -33,6 +36,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
 import com.example.xyzreader.R;
 import com.example.xyzreader.data.ArticleLoader;
+import com.squareup.picasso.Callback;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -50,6 +54,7 @@ public class ArticleDetailFragment extends Fragment implements
 
     public static final String ARG_ITEM_ID = "item_id";
     private static final float PARALLAX_FACTOR = 1.25f;
+    private static final String ARG_ITEM_IMAGE_POSITION = "arg_item_image_position";
 
     private Cursor mCursor;
     private long mItemId;
@@ -68,8 +73,11 @@ public class ArticleDetailFragment extends Fragment implements
     private boolean mIsCard = false;
     private int mStatusBarFullOpacityBottom;
     private LinearLayoutManager mLayoutManager;
-    //private Adapter mAdapter;
-    String[] mChunks;
+    public int mStartingPosition;
+    private int mArticlePosition;
+    private boolean mIsTransitioning;
+    //private int mAlbumPosition;
+
 
     Typeface rosario;
 
@@ -80,6 +88,21 @@ public class ArticleDetailFragment extends Fragment implements
     private GregorianCalendar START_OF_EPOCH = new GregorianCalendar(2, 1, 1);
 
 
+    private static final String ARG_ALBUM_IMAGE_POSITION = "arg_album_image_position";
+    private static final String ARG_STARTING_ALBUM_IMAGE_POSITION = "arg_starting_album_image_position";
+
+    private final Callback mImageCallback = new Callback() {
+        @Override
+        public void onSuccess() {
+            startPostponedEnterTransition();
+        }
+
+        @Override
+        public void onError() {
+            startPostponedEnterTransition();
+        }
+    };
+
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
@@ -87,9 +110,11 @@ public class ArticleDetailFragment extends Fragment implements
     public ArticleDetailFragment() {
     }
 
-    public static ArticleDetailFragment newInstance(long itemId) {
+    public static ArticleDetailFragment newInstance(long itemId, int position, int startingPosition) {
         Bundle arguments = new Bundle();
         arguments.putLong(ARG_ITEM_ID, itemId);
+        arguments.putInt(ARG_ITEM_IMAGE_POSITION, position);
+        arguments.putInt(ARG_STARTING_ALBUM_IMAGE_POSITION, startingPosition);
         ArticleDetailFragment fragment = new ArticleDetailFragment();
         fragment.setArguments(arguments);
         return fragment;
@@ -107,6 +132,9 @@ public class ArticleDetailFragment extends Fragment implements
 
         if (getArguments().containsKey(ARG_ITEM_ID)) {
             mItemId = getArguments().getLong(ARG_ITEM_ID);
+            mStartingPosition = getArguments().getInt(ARG_STARTING_ALBUM_IMAGE_POSITION);
+            mArticlePosition = getArguments().getInt(ARG_ITEM_IMAGE_POSITION);
+            mIsTransitioning = savedInstanceState == null && mStartingPosition == mArticlePosition;
         }
 
         mIsCard = getResources().getBoolean(R.bool.detail_is_card);
@@ -328,50 +356,40 @@ public class ArticleDetailFragment extends Fragment implements
                 ? (int) mPhotoContainerView.getTranslationY() + mPhotoView.getHeight() - mScrollY
                 : mPhotoView.getHeight() - mScrollY;
     }
+
+    private void startPostponedEnterTransition() {
+        if (mArticlePosition == mStartingPosition) {
+            mPhotoView.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+                @Override
+                public boolean onPreDraw() {
+                    mPhotoView.getViewTreeObserver().removeOnPreDrawListener(this);
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        getActivity().startPostponedEnterTransition();
+                    }
+                    return true;
+                }
+            });
+        }
+    }
+
+    /**
+     * Returns the shared element that should be transitioned back to the previous Activity,
+     * or null if the view is not visible on the screen.
+     */
+    @Nullable
+    ImageView getItemImage() {
+        if (isViewInBounds(getActivity().getWindow().getDecorView(), mPhotoView)) {
+            return mPhotoView;
+        }
+        return null;
+    }
+
+    /**
+     * Returns true if {@param view} is contained within {@param container}'s bounds.
+     */
+    private static boolean isViewInBounds(@NonNull View container, @NonNull View view) {
+        Rect containerBounds = new Rect();
+        container.getHitRect(containerBounds);
+        return view.getLocalVisibleRect(containerBounds);
+    }
 }
-
-
-
-
-//            StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder() .detectAll() .penaltyLog() .penaltyDropBox()
-//                    .build()); StrictMode.setThreadPolicy(new StrictMode .ThreadPolicy .Builder() .detectAll()
-//                    .penaltyLog() .penaltyFlashScreen() .penaltyDialog() .build());
-//            String html = Html.fromHtml(mCursor.getString(ArticleLoader.Query.BODY).replaceAll("(\r\n\r\n|\n\n)", "<br /><br />")).toString();
-//            WebView myWebView = (WebView) mRootView.findViewById(R.id.webview_reader);
-//            myWebView.loadData(html, "text/html", "UTF-8");
-//            String html = Html.fromHtml(mCursor.getString(ArticleLoader.Query.BODY).replaceAll("(\r\n\r\n|\n\n)", "<br /><br />")).toString();
-//            mChunks = html.split("(\r\n\r\n|\n\n)");
-
-
-//    private class Adapter extends RecyclerView.Adapter<ArticleDetailFragment.ViewHolder> {
-//
-//
-//        public Adapter(String[] chunk) {
-//            mChunks = chunk;
-//        }
-//
-//        @Override
-//        public ArticleDetailFragment.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-//            View view = getActivity().getLayoutInflater().inflate(R.layout.list_item_chunk_text, parent, false);
-//            return new ArticleDetailFragment.ViewHolder(view);
-//        }
-//
-//        @Override
-//        public void onBindViewHolder(ViewHolder holder, int position) {
-//            holder.chunkTextView.setText(mChunks[position]);
-//        }
-//
-//        @Override
-//        public int getItemCount() {
-//            return mChunks.length;
-//        }
-//    }
-//
-//    public static class ViewHolder extends RecyclerView.ViewHolder {
-//        public HtmlTextView chunkTextView;
-//
-//        public ViewHolder(View view) {
-//            super(view);
-//            chunkTextView = (HtmlTextView) view.findViewById(R.id.article_body);
-//        }
-//    }

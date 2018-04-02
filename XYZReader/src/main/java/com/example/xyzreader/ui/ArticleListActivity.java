@@ -134,6 +134,7 @@ public class ArticleListActivity extends AppCompatActivity implements
         refresh();
     }
 
+
     private class Adapter extends RecyclerView.Adapter<ViewHolder> {
         private Cursor mCursor;
 
@@ -154,8 +155,19 @@ public class ArticleListActivity extends AppCompatActivity implements
             view.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    startActivity(new Intent(Intent.ACTION_VIEW,
-                            ItemsContract.Items.buildItemUri(getItemId(vh.getAdapterPosition()))));
+//                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+//                            ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(ArticleListActivity.this,
+//                                vh.thumbnailView, getString(R.string.transition_photo));
+//                            Intent intent = new Intent(Intent.ACTION_VIEW,
+//                                    ItemsContract.Items.buildItemUri(getItemId(vh.getAdapterPosition())));
+//                            startActivity(intent, options.toBundle());
+//                        }else {
+                            Intent intent = new Intent(Intent.ACTION_VIEW,
+                                    ItemsContract.Items.buildItemUri(getItemId(vh.getAdapterPosition())));
+                            startActivity(intent);
+                       // }
+
+
                     Log.d(TAG, "intent started to fragment");
                 }
             });

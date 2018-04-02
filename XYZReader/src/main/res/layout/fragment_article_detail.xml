@@ -24,6 +24,7 @@
                 <ImageView
                     android:id="@+id/photo"
                     android:scaleType="centerCrop"
+                    android:transitionName="@string/transition_photo"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                      />
@@ -78,48 +79,18 @@
                         android:textColor="#8fff" />
                 </LinearLayout>
 
-                <!--<ScrollView-->
-                    <!--android:layout_width="match_parent"-->
-                    <!--android:layout_height="match_parent"-->
-                    <!--android:nestedScrollingEnabled="true">-->
-                <!--<WebView-->
-                    <!--android:id="@+id/webview_reader"-->
-                    <!--android:layout_width="match_parent"-->
-                    <!--android:layout_height="match_parent"-->
-                    <!--android:layout_margin="8dp" />-->
-
-                <!--</ScrollView>-->
-
-                <ScrollView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:nestedScrollingEnabled="true">
-
-                <android.support.v7.widget.RecyclerView
-                    android:id="@+id/recycler_view_body"
+                <TextView
+                    android:id="@+id/article_body"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:clipToPadding="false"
-                    android:paddingBottom="@dimen/list_side_margin"
-                    android:paddingLeft="@dimen/list_side_margin"
-                    android:paddingRight="@dimen/list_side_margin"
-                    android:paddingTop="@dimen/list_side_margin"
-                    android:scrollbarStyle="outsideOverlay" />
-
-                </ScrollView>
-
-                <!--<org.sufficientlysecure.htmltextview.HtmlTextView-->
-                    <!--android:id="@+id/article_body"-->
-                    <!--android:layout_width="match_parent"-->
-                    <!--android:layout_height="wrap_content"-->
-                    <!--android:layout_marginLeft="@dimen/detail_inner_horiz_margin"-->
-                    <!--android:layout_marginRight="@dimen/detail_inner_horiz_margin"-->
-                    <!--android:paddingBottom="@dimen/detail_body_bottom_margin"-->
-                    <!--android:fontFamily="sans-serif-condensed"-->
-                    <!--android:textColor="#000"-->
-                    <!--android:textColorLink="@color/colorAccent"-->
-                    <!--android:textSize="@dimen/detail_body_text_size"-->
-                    <!--android:lineSpacingMultiplier="@fraction/detail_body_line_spacing_multiplier" />-->
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="@dimen/detail_inner_horiz_margin"
+                    android:layout_marginRight="@dimen/detail_inner_horiz_margin"
+                    android:paddingBottom="@dimen/detail_body_bottom_margin"
+                    android:fontFamily="sans-serif-condensed"
+                    android:textColor="#000"
+                    android:textColorLink="@color/colorAccent"
+                    android:textSize="@dimen/detail_body_text_size"
+                    android:lineSpacingMultiplier="@fraction/detail_body_line_spacing_multiplier" />
 
             </com.example.xyzreader.ui.MaxWidthLinearLayout>
         </RelativeLayout>

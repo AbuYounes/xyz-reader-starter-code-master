@@ -68,7 +68,7 @@ public class ArticleDetailFragment extends Fragment implements
     private boolean mIsCard = false;
     private int mStatusBarFullOpacityBottom;
     private LinearLayoutManager mLayoutManager;
-    private Adapter mAdapter;
+    //private Adapter mAdapter;
     String[] mChunks;
 
     Typeface rosario;
@@ -116,8 +116,6 @@ public class ArticleDetailFragment extends Fragment implements
             getActivity().getWindow().setStatusBarColor(Color.TRANSPARENT);
         }
         setHasOptionsMenu(true);
-
-        Log.d(TAG, "fragment started oncreate");
     }
 
     public ArticleDetailActivity getActivityCast() {
@@ -159,12 +157,6 @@ public class ArticleDetailFragment extends Fragment implements
             }
         });
 
-        mRecyclerView = (RecyclerView) mRootView.findViewById(R.id.recycler_view_body);
-        mLayoutManager = new LinearLayoutManager(getActivity());
-        mRecyclerView.setLayoutManager(mLayoutManager);
-        mRecyclerView.setHasFixedSize(true);
-
-
         mPhotoView = (ImageView) mRootView.findViewById(R.id.photo);
         mPhotoContainerView = mRootView.findViewById(R.id.photo_container);
 
@@ -183,9 +175,6 @@ public class ArticleDetailFragment extends Fragment implements
         });
 
         bindViews();
-        Log.d(TAG, "fragment started oncreateview");
-        mAdapter = new Adapter(mChunks);
-        mRecyclerView.setAdapter(mAdapter);
         updateStatusBar();
         return mRootView;
     }
@@ -237,10 +226,10 @@ public class ArticleDetailFragment extends Fragment implements
 
         TextView titleView = (TextView) mRootView.findViewById(R.id.article_title);
         TextView bylineView = (TextView) mRootView.findViewById(R.id.article_byline);
-        bylineView.setMovementMethod(new LinkMovementMethod());
-        //HtmlTextView bodyView = (HtmlTextView) mRootView.findViewById(R.id.article_body);
 
-        //bodyView.setTypeface(rosario);
+        TextView bodyView = (TextView) mRootView.findViewById(R.id.article_body);
+
+        bodyView.setTypeface(rosario);
 
         if (mCursor != null) {
             mRootView.setAlpha(0);
@@ -267,16 +256,11 @@ public class ArticleDetailFragment extends Fragment implements
                                 + "</font>"));
             }
 
-            //bodyView.setHtml(String.valueOf(Html.fromHtml(mCursor.getString(ArticleLoader.Query.BODY).replaceAll("(\r\n\r\n|\n\n)", "<br /><br />"))));
-//            StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder() .detectAll() .penaltyLog() .penaltyDropBox()
-//                    .build()); StrictMode.setThreadPolicy(new StrictMode .ThreadPolicy .Builder() .detectAll()
-//                    .penaltyLog() .penaltyFlashScreen() .penaltyDialog() .build());
-//            String html = Html.fromHtml(mCursor.getString(ArticleLoader.Query.BODY).replaceAll("(\r\n\r\n|\n\n)", "<br /><br />")).toString();
-//            WebView myWebView = (WebView) mRootView.findViewById(R.id.webview_reader);
-//            myWebView.loadData(html, "text/html", "UTF-8");
+            bodyView.setText(Html.fromHtml(mCursor.getString(ArticleLoader.Query.BODY).replaceAll("(\r\n\r\n|\n\n)", "<br /><br />")));
+            bodyView.setMovementMethod(new LinkMovementMethod());
 
-            String html = Html.fromHtml(mCursor.getString(ArticleLoader.Query.BODY).replaceAll("(\r\n\r\n|\n\n)", "<br /><br />")).toString();
-            mChunks = html.split("(\r\n\r\n|\n\n)");
+
+
             ImageLoaderHelper.getInstance(getActivity()).getImageLoader()
                     .get(mCursor.getString(ArticleLoader.Query.PHOTO_URL), new ImageLoader.ImageListener() {
                         @Override
@@ -301,7 +285,7 @@ public class ArticleDetailFragment extends Fragment implements
             mRootView.setVisibility(View.GONE);
             titleView.setText("N/A");
             bylineView.setText("N/A");
-            //bodyView.setHtml("N/A");
+            bodyView.setText("N/A");
         }
     }
 
@@ -345,38 +329,50 @@ public class ArticleDetailFragment extends Fragment implements
                 ? (int) mPhotoContainerView.getTranslationY() + mPhotoView.getHeight() - mScrollY
                 : mPhotoView.getHeight() - mScrollY;
     }
-
-
-    private class Adapter extends RecyclerView.Adapter<ArticleDetailFragment.ViewHolder> {
-
-        public Adapter(String[] chunk) {
-            mChunks = chunk;
-        }
-
-        @Override
-        public ArticleDetailFragment.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View view = getActivity().getLayoutInflater().inflate(R.layout.list_item_chunk_text, parent, false);
-            return new ArticleDetailFragment.ViewHolder(view);
-        }
-
-        @Override
-        public void onBindViewHolder(ViewHolder holder, int position) {
-             holder.chunkTextView.setText(mChunks[position]);
-        }
-
-        @Override
-        public int getItemCount() {
-            return mChunks.length;
-        }
-    }
-
-    public static class ViewHolder extends RecyclerView.ViewHolder {
-        public TextView chunkTextView;
-
-        public ViewHolder(View view) {
-            super(view);
-            chunkTextView = (TextView) view.findViewById(R.id.article_body);
-        }
-    }
 }
 
+
+
+
+//            StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder() .detectAll() .penaltyLog() .penaltyDropBox()
+//                    .build()); StrictMode.setThreadPolicy(new StrictMode .ThreadPolicy .Builder() .detectAll()
+//                    .penaltyLog() .penaltyFlashScreen() .penaltyDialog() .build());
+//            String html = Html.fromHtml(mCursor.getString(ArticleLoader.Query.BODY).replaceAll("(\r\n\r\n|\n\n)", "<br /><br />")).toString();
+//            WebView myWebView = (WebView) mRootView.findViewById(R.id.webview_reader);
+//            myWebView.loadData(html, "text/html", "UTF-8");
+//            String html = Html.fromHtml(mCursor.getString(ArticleLoader.Query.BODY).replaceAll("(\r\n\r\n|\n\n)", "<br /><br />")).toString();
+//            mChunks = html.split("(\r\n\r\n|\n\n)");
+
+
+//    private class Adapter extends RecyclerView.Adapter<ArticleDetailFragment.ViewHolder> {
+//
+//
+//        public Adapter(String[] chunk) {
+//            mChunks = chunk;
+//        }
+//
+//        @Override
+//        public ArticleDetailFragment.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+//            View view = getActivity().getLayoutInflater().inflate(R.layout.list_item_chunk_text, parent, false);
+//            return new ArticleDetailFragment.ViewHolder(view);
+//        }
+//
+//        @Override
+//        public void onBindViewHolder(ViewHolder holder, int position) {
+//            holder.chunkTextView.setText(mChunks[position]);
+//        }
+//
+//        @Override
+//        public int getItemCount() {
+//            return mChunks.length;
+//        }
+//    }
+//
+//    public static class ViewHolder extends RecyclerView.ViewHolder {
+//        public HtmlTextView chunkTextView;
+//
+//        public ViewHolder(View view) {
+//            super(view);
+//            chunkTextView = (HtmlTextView) view.findViewById(R.id.article_body);
+//        }
+//    }

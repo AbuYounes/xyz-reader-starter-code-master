@@ -1,3 +1,5 @@
+package com.example.xyzreader.ui;
+
 import android.app.Application;
 
 import com.facebook.stetho.Stetho;

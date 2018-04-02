@@ -11,6 +11,7 @@
     android:foreground="?selectableItemBackground">
 
     <LinearLayout
+        android:id="@+id/container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
@@ -20,6 +21,7 @@
             android:id="@+id/thumbnail"
             android:layout_width="match_parent"
             android:layout_height="0dp"
+            android:transitionName="@string/transition_photo"
             android:scaleType="centerCrop"
             android:background="@color/photo_placeholder" />
 

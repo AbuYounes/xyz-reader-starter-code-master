@@ -131,8 +131,8 @@ public class ArticleDetailFragment extends Fragment implements
 
         if (getArguments().containsKey(ARG_ITEM_ID)) {
             mItemId = getArguments().getLong(ARG_ITEM_ID);
-            mStartingPosition = getArguments().getInt(Constants.ARG_STARTING_ITEM_IMAGE_POSITION);
             mArticlePosition = getArguments().getInt(Constants.ARG_ITEM_IMAGE_POSITION);
+            mStartingPosition = getArguments().getInt(Constants.ARG_STARTING_ITEM_IMAGE_POSITION);
             mIsTransitioning = savedInstanceState == null && mStartingPosition == mArticlePosition;
         }
 
@@ -186,6 +186,7 @@ public class ArticleDetailFragment extends Fragment implements
 
         mPhotoView = (ImageView) mRootView.findViewById(R.id.photo);
         mPhotoContainerView = mRootView.findViewById(R.id.photo_container);
+
 
         mStatusBarColorDrawable = new ColorDrawable(0);
 
@@ -249,6 +250,10 @@ public class ArticleDetailFragment extends Fragment implements
     private void bindViews() {
         if (mRootView == null) {
             return;
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            mPhotoView.setTransitionName(String.valueOf(mArticlePosition));
         }
 
         TextView titleView = (TextView) mRootView.findViewById(R.id.article_title);

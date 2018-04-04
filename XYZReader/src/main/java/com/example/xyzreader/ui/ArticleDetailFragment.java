@@ -6,18 +6,21 @@ import android.app.LoaderManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.Loader;
+import android.content.res.ColorStateList;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ShareCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.graphics.Palette;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -32,11 +35,12 @@ import android.view.ViewTreeObserver;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.ImageLoader;
 import com.example.xyzreader.R;
 import com.example.xyzreader.data.ArticleLoader;
 import com.squareup.picasso.Callback;
+import com.squareup.picasso.Picasso;
+import com.squareup.picasso.RequestCreator;
+import com.squareup.picasso.Target;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -76,6 +80,7 @@ public class ArticleDetailFragment extends Fragment implements
     public int mStartingPosition;
     private int mArticlePosition;
     private boolean mIsTransitioning;
+    private long mBackgroundImageFadeMillis;
     //private int mAlbumPosition;
 
 
@@ -134,6 +139,8 @@ public class ArticleDetailFragment extends Fragment implements
             mArticlePosition = getArguments().getInt(Constants.ARG_ITEM_IMAGE_POSITION);
             mStartingPosition = getArguments().getInt(Constants.ARG_STARTING_ITEM_IMAGE_POSITION);
             mIsTransitioning = savedInstanceState == null && mStartingPosition == mArticlePosition;
+//            mBackgroundImageFadeMillis = getResources().getInteger(
+//                    R.integer.fragment_details_background_image_fade_millis);
         }
 
         mIsCard = getResources().getBoolean(R.bool.detail_is_card);
@@ -291,32 +298,94 @@ public class ArticleDetailFragment extends Fragment implements
             bodyView.setText(Html.fromHtml(mCursor.getString(ArticleLoader.Query.BODY).replaceAll("(\r\n\r\n|\n\n)", "<br /><br />")));
             bodyView.setMovementMethod(new LinkMovementMethod());
 
+            String image_url = mCursor.getString(ArticleLoader.Query.PHOTO_URL);
+            RequestCreator backgroundImageRequest = Picasso.with(getActivity())
+                    .load(image_url)
+//                    .placeholder(R.drawable.empty_detail)
+//                    .error(R.drawable.empty_detail)
+                    .fit().centerCrop();
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                if (mIsTransitioning) {
+                    backgroundImageRequest.noFade();
+                }
+            }
+            backgroundImageRequest.into(mPhotoView, mImageCallback);
+            mPhotoView.setTag(bitmapLoaderTarget);
 
 
-            ImageLoaderHelper.getInstance(getActivity()).getImageLoader()
-                    .get(mCursor.getString(ArticleLoader.Query.PHOTO_URL), new ImageLoader.ImageListener() {
-                        @Override
-                        public void onResponse(ImageLoader.ImageContainer imageContainer, boolean b) {
-                            Bitmap bitmap = imageContainer.getBitmap();
-                            if (bitmap != null) {
-                                Palette p = Palette.generate(bitmap, 12);
-                                mMutedColor = p.getDarkMutedColor(0xFF333333);
-                                mPhotoView.setImageBitmap(imageContainer.getBitmap());
-                                mRootView.findViewById(R.id.meta_bar)
-                                        .setBackgroundColor(mMutedColor);
-                                updateStatusBar();
-                            }
-                        }
-
-                        @Override
-                        public void onErrorResponse(VolleyError volleyError) {
-                        }
-                    });
+//            ImageLoaderHelper.getInstance(getActivity()).getImageLoader()
+//                    .get(mCursor.getString(ArticleLoader.Query.PHOTO_URL), new ImageLoader.ImageListener() {
+//                        @Override
+//                        public void onResponse(ImageLoader.ImageContainer imageContainer, boolean b) {
+//                            Bitmap bitmap = imageContainer.getBitmap();
+//                            if (bitmap != null) {
+//                                Palette p = Palette.generate(bitmap, 12);
+//                                mMutedColor = p.getDarkMutedColor(0xFF333333);
+//                                mPhotoView.setImageBitmap(imageContainer.getBitmap());
+//                                mRootView.findViewById(R.id.meta_bar)
+//                                        .setBackgroundColor(mMutedColor);
+//                                updateStatusBar();
+//                            }
+//                        }
+//
+//                        @Override
+//                        public void onErrorResponse(VolleyError volleyError) {
+//                        }
+//                    });
         } else {
             mRootView.setVisibility(View.GONE);
             titleView.setText("N/A");
             bylineView.setText("N/A");
             bodyView.setText("N/A");
+        }
+    }
+
+    final Target bitmapLoaderTarget = new com.squareup.picasso.Target () {
+        @Override
+        public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+            if(bitmap!=null){
+                Palette.from(bitmap).generate(paletteListener);
+                mPhotoView.setImageBitmap(bitmap);
+                startPostponedEnterTransition();
+            }
+            else{
+                mPhotoView.setImageDrawable(ContextCompat.getDrawable(getActivity(),R.drawable.empty_detail));
+            }
+        }
+
+        @Override
+        public void onBitmapFailed(Drawable errorDrawable) {
+            mPhotoView.setImageDrawable(ContextCompat.getDrawable(getActivity(),R.drawable.empty_detail));
+            startPostponedEnterTransition();
+        }
+
+        @Override
+        public void onPrepareLoad(Drawable placeHolderDrawable) {
+            startPostponedEnterTransition();
+        }
+    };
+
+
+    Palette.PaletteAsyncListener paletteListener = new Palette.PaletteAsyncListener() {
+        public void onGenerated(Palette palette) {
+            applyPalette(palette);
+        }
+    };
+
+    private void applyPalette(Palette palette) {
+
+        if (isAdded()) {
+            fab.setRippleColor(
+                    palette.getLightVibrantColor(
+                            ContextCompat.getColor(getActivity(), R.color.ltgray)));
+
+            fab.setBackgroundTintList(
+                    ColorStateList.valueOf(
+                            palette.getVibrantColor(
+                                    ContextCompat.getColor(getActivity(), R.color.colorAccent))));
+
+
         }
     }
 

@@ -342,6 +342,7 @@ public class ArticleDetailFragment extends Fragment implements
         }
 
         bindViews();
+        startPostponedEnterTransition();
     }
 
     @Override

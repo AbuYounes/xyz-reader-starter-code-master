@@ -1,5 +1,6 @@
 package com.example.xyzreader.ui;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.support.v4.util.LruCache;
@@ -21,6 +22,14 @@ public class ImageLoaderHelper {
 
     private final LruCache<String, Bitmap> mImageCache = new LruCache<String, Bitmap>(20);
     private ImageLoader mImageLoader;
+    private ImageLoaderHelper.Callbacks callbacks;
+
+    public ImageLoaderHelper requestFrom(Activity activity){
+        if(activity instanceof ArticleDetailActivity){
+            callbacks = (ImageLoaderHelper.Callbacks) activity;
+        }
+        return sInstance;
+    }
 
     private ImageLoaderHelper(Context applicationContext) {
         RequestQueue queue = Volley.newRequestQueue(applicationContext);
@@ -28,6 +37,9 @@ public class ImageLoaderHelper {
             @Override
             public void putBitmap(String key, Bitmap value) {
                 mImageCache.put(key, value);
+                if(callbacks != null) {
+                    callbacks.onAddedToCache(key, value);
+                }
             }
 
             @Override
@@ -40,5 +52,13 @@ public class ImageLoaderHelper {
 
     public ImageLoader getImageLoader() {
         return mImageLoader;
+    }
+
+    public Bitmap getBitmap(String key){
+        return mImageCache.get(key);
+    }
+
+    public interface Callbacks{
+        void onAddedToCache(String key,Bitmap bitmap);
     }
 }

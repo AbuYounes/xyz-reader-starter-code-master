@@ -11,5 +11,6 @@
 
     <dimen name="fab_height">56dp</dimen>
     <dimen name="fab_width">56dp</dimen>
+    <dimen name="overlap_top">64dp</dimen>
 
 </resources>

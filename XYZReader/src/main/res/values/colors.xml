@@ -22,8 +22,12 @@
     <color name="colorPrimaryDark">#616161 </color>
     <color name="colorAccent">#526760</color>
     <color name="ltgray">#ffe0e0e0</color>
+    <color name="light_gray">#ffefefef</color>
 
     <color name="primaryText">#de000000</color> <!-- 87% -->
     <color name="secondaryText">#8a000000</color> <!-- 54% -->
     <color name="tertiaryText">#61000000</color> <!-- 38% -->
+    <color name="article_title_color">#3e3e3e</color>
+    <color name="article_sub_title_color">#8e8e8e</color>
+
 </resources>

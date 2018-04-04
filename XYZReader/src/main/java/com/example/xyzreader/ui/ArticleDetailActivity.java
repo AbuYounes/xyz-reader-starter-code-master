@@ -18,6 +18,7 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.view.WindowInsets;
 import android.widget.ImageView;
 
@@ -28,9 +29,6 @@ import com.example.xyzreader.data.ItemsContract;
 import java.util.List;
 import java.util.Map;
 
-import static com.example.xyzreader.ui.ArticleListActivity.EXTRA_CURRENT_ITEM_POSITION;
-import static com.example.xyzreader.ui.ArticleListActivity.EXTRA_STARTING_ITEM_POSITION;
-
 /**
  * An activity representing a single Article detail screen, letting you swipe between articles.
  */
@@ -38,12 +36,11 @@ public class ArticleDetailActivity extends AppCompatActivity
         implements LoaderManager.LoaderCallbacks<Cursor> {
 
     private static final java.lang.String EXTRA_SELECTED_ID = "extra_selected_id";
-    private static final String STATE_CURRENT_PAGE_POSITION = "state_current_page_position";
 
     private static final String TAG = ArticleDetailActivity.class.toString();
     private Cursor mCursor;
 
-
+    private long mStartId;
     private long mSelectedItemId;
     private int mSelectedItemUpButtonFloor = Integer.MAX_VALUE;
     private int mTopInset;
@@ -53,7 +50,6 @@ public class ArticleDetailActivity extends AppCompatActivity
     private MyPagerAdapter mPagerAdapter;
     private View mUpButtonContainer;
     private View mUpButton;
-    private int mStartingPosition;
 
 
     private final SharedElementCallback mCallback = new SharedElementCallback() {
@@ -67,7 +63,7 @@ public class ArticleDetailActivity extends AppCompatActivity
                     // removing the shared element from the shared elements map.
                     names.clear();
                     sharedElements.clear();
-                } else if (mStartId != mCurrentPosition) {
+                } else if (mStartingPosition != mCurrentPosition) {
                     // If the user has swiped to a different ViewPager page, then we need to
                     // remove the old shared element and replace it with the new shared element
                     // that should be transitioned instead.
@@ -86,36 +82,37 @@ public class ArticleDetailActivity extends AppCompatActivity
 
     private ArticleDetailFragment mCurrentDetailsFragment;
     private int mCurrentPosition;
-    private long mStartId;
+    private int mStartingPosition;
     private boolean mIsReturning;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getWindow().requestFeature(Window.FEATURE_ACTIVITY_TRANSITIONS);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             getWindow().getDecorView().setSystemUiVisibility(
                     View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
                             View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
         }
         setContentView(R.layout.activity_article_detail);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            postponeEnterTransition();
-            setEnterSharedElementCallback(mCallback);
-        }
+        postponeEnterTransition();
+        setEnterSharedElementCallback(mCallback);
+
+
 
 
         Log.d(TAG, "intent received");
         // eerste wijziging
-
-        mStartingPosition = getIntent().getIntExtra(EXTRA_STARTING_ITEM_POSITION, 0);
-        if (savedInstanceState == null) {
-            mCurrentPosition=mStartingPosition;
+        mStartingPosition = getIntent().getIntExtra(Constants.EXTRA_STARTING_ITEM_POSITION, 0);
+        if(savedInstanceState == null) {
+            mCurrentPosition = mStartingPosition;
             if (getIntent() != null && getIntent().getData() != null) {
                 mStartId = ItemsContract.Items.getItemId(getIntent().getData());
+                mSelectedItemId = mStartId;
             }
-        }
-        else{
-            mCurrentPosition = savedInstanceState.getInt(STATE_CURRENT_PAGE_POSITION);
+        }else {
+                mCurrentPosition = savedInstanceState.getInt(Constants.STATE_CURRENT_PAGE_POSITION);
+
         }
         getLoaderManager().initLoader(0, null, this);
 
@@ -123,7 +120,6 @@ public class ArticleDetailActivity extends AppCompatActivity
         mPagerAdapter = new MyPagerAdapter(getFragmentManager());
         mPager = (ViewPager) findViewById(R.id.pager);
         mPager.setAdapter(mPagerAdapter);
-        mPager.setCurrentItem(mCurrentPosition);
         mPager.setPageMargin((int) TypedValue
                 .applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1, getResources().getDisplayMetrics()));
         mPager.setPageMarginDrawable(new ColorDrawable(0x22000000));
@@ -177,24 +173,20 @@ public class ArticleDetailActivity extends AppCompatActivity
                 }
             });
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            postponeEnterTransition();
-        }
-
     }
 
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putInt(STATE_CURRENT_PAGE_POSITION, mCurrentPosition);
+        outState.putInt(Constants.STATE_CURRENT_PAGE_POSITION, mCurrentPosition);
     }
 
     @Override
     public void finishAfterTransition() {
         mIsReturning = true;
         Intent data = new Intent();
-        data.putExtra(EXTRA_STARTING_ITEM_POSITION, mStartId);
-        data.putExtra(EXTRA_CURRENT_ITEM_POSITION, mCurrentPosition);
+        data.putExtra(Constants.EXTRA_STARTING_ITEM_POSITION, mStartingPosition);
+        data.putExtra(Constants.EXTRA_CURRENT_ITEM_POSITION, mCurrentPosition);
         setResult(RESULT_OK, data);
         super.finishAfterTransition();
     }
@@ -209,20 +201,24 @@ public class ArticleDetailActivity extends AppCompatActivity
         mCursor = cursor;
         mPagerAdapter.notifyDataSetChanged();
 
-//         Select the start ID
-        if (mStartId > 0) {
-            mCursor.moveToFirst();
-            // TODO: optimize
-            while (!mCursor.isAfterLast()) {
-                if (mCursor.getLong(ArticleLoader.Query._ID) == mStartId) {
-                    final int position = mCursor.getPosition();
-                    mPager.setCurrentItem(position, false);
-                    break;
-                }
-                mCursor.moveToNext();
-            }
-            mStartId = 0;
+        if (mCursor.moveToPosition(mCurrentPosition)) {
+            mPager.setCurrentItem(mCurrentPosition, false);
         }
+
+//         Select the start ID
+//        if (mStartId > 0) {
+//            mCursor.moveToFirst();
+//            // TODO: optimize
+//            while (!mCursor.isAfterLast()) {
+//                if (mCursor.getLong(ArticleLoader.Query._ID) == mStartId) {
+//                    final int position = mCursor.getPosition();
+//                    mPager.setCurrentItem(position, false);
+//                    break;
+//                }
+//                mCursor.moveToNext();
+//            }
+//            mStartId = 0;
+//        }
     }
 
     @Override
@@ -261,7 +257,7 @@ public class ArticleDetailActivity extends AppCompatActivity
         @Override
         public Fragment getItem(int position) {
             mCursor.moveToPosition(position);
-            return ArticleDetailFragment.newInstance(mCursor.getLong(ArticleLoader.Query._ID), position, mCurrentPosition);
+            return ArticleDetailFragment.newInstance(mCursor.getLong(ArticleLoader.Query._ID), position, position);
         }
 
         @Override

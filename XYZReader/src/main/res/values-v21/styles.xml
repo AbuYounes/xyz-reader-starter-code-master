@@ -11,13 +11,14 @@
 
         <!-- specify enter and exit transitions -->
         <!-- options are: explode, slide, fade -->
+        <item name="android:windowContentTransitions">true</item>
+        <item name="android:windowEnterTransition">@transition/enter_article_detail</item>
+        <item name="android:windowExitTransition">@transition/exit_article_detail</item>
 
     </style>
 
     <style name="Theme.Bacon.Detail" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:windowContentTransitions">true</item>
-        <item name="android:windowEnterTransition">@transition/enter_article_detail</item>
-        <item name="android:windowExitTransition">@transition/exit_article_detail</item>
+
     </style>
 </resources>

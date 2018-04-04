@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <transitionSet xmlns:android="http://schemas.android.com/apk/res/android"
-    android:transitionOrdering="together">
-    <slide
-        android:duration="@android:integer/config_mediumAnimTime"
-        android:fromYDelta="0"
-        android:interpolator="@android:anim/accelerate_interpolator"
-        android:toYDelta="100%p">
+    android:transitionOrdering="together"
+    android:duration="500">
+    <fade>
         <targets>
-            <target android:targetId="@id/article_body"></target>
-        </targets>
-    </slide>
-
-    <fade
-        android:duration="@android:integer/config_mediumAnimTime"
-        android:interpolator="@android:anim/accelerate_interpolator">
-        <targets>
-            <target android:targetId="@id/photo_container"></target>
+            <target android:excludeId="@android:id/statusBarBackground" />
+            <target android:excludeId="@android:id/navigationBarBackground" />
         </targets>
     </fade>
+    <slide android:slideEdge="top">
+        <targets>
+            <target android:targetId="@id/photo_container" />
+        </targets>
+    </slide>
+    <slide android:slideEdge="bottom">
+        <targets>
+            <target android:targetId="@id/article_body" />
+        </targets>
+    </slide>
 </transitionSet>

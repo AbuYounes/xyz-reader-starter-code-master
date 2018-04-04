@@ -54,7 +54,7 @@ public class ArticleDetailFragment extends Fragment implements
 
     public static final String ARG_ITEM_ID = "item_id";
     private static final float PARALLAX_FACTOR = 1.25f;
-    private static final String ARG_ITEM_IMAGE_POSITION = "arg_item_image_position";
+
 
     private Cursor mCursor;
     private long mItemId;
@@ -88,9 +88,6 @@ public class ArticleDetailFragment extends Fragment implements
     private GregorianCalendar START_OF_EPOCH = new GregorianCalendar(2, 1, 1);
 
 
-    private static final String ARG_ALBUM_IMAGE_POSITION = "arg_album_image_position";
-    private static final String ARG_STARTING_ALBUM_IMAGE_POSITION = "arg_starting_album_image_position";
-
     private final Callback mImageCallback = new Callback() {
         @Override
         public void onSuccess() {
@@ -113,8 +110,10 @@ public class ArticleDetailFragment extends Fragment implements
     public static ArticleDetailFragment newInstance(long itemId, int position, int startingPosition) {
         Bundle arguments = new Bundle();
         arguments.putLong(ARG_ITEM_ID, itemId);
-        arguments.putInt(ARG_ITEM_IMAGE_POSITION, position);
-        arguments.putInt(ARG_STARTING_ALBUM_IMAGE_POSITION, startingPosition);
+
+        arguments.putInt(Constants.ARG_ITEM_IMAGE_POSITION, position);
+        arguments.putInt(Constants.ARG_STARTING_ITEM_IMAGE_POSITION, startingPosition);
+
         ArticleDetailFragment fragment = new ArticleDetailFragment();
         fragment.setArguments(arguments);
         return fragment;
@@ -132,8 +131,8 @@ public class ArticleDetailFragment extends Fragment implements
 
         if (getArguments().containsKey(ARG_ITEM_ID)) {
             mItemId = getArguments().getLong(ARG_ITEM_ID);
-            mStartingPosition = getArguments().getInt(ARG_STARTING_ALBUM_IMAGE_POSITION);
-            mArticlePosition = getArguments().getInt(ARG_ITEM_IMAGE_POSITION);
+            mStartingPosition = getArguments().getInt(Constants.ARG_STARTING_ITEM_IMAGE_POSITION);
+            mArticlePosition = getArguments().getInt(Constants.ARG_ITEM_IMAGE_POSITION);
             mIsTransitioning = savedInstanceState == null && mStartingPosition == mArticlePosition;
         }
 

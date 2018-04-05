@@ -22,7 +22,6 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ShareCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.graphics.Palette;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
 import android.text.format.DateUtils;
@@ -38,8 +37,8 @@ import android.widget.TextView;
 import com.example.xyzreader.R;
 import com.example.xyzreader.data.ArticleLoader;
 import com.squareup.picasso.Callback;
+import com.squareup.picasso.NetworkPolicy;
 import com.squareup.picasso.Picasso;
-import com.squareup.picasso.RequestCreator;
 import com.squareup.picasso.Target;
 
 import java.text.ParseException;
@@ -76,12 +75,9 @@ public class ArticleDetailFragment extends Fragment implements
     private int mScrollY;
     private boolean mIsCard = false;
     private int mStatusBarFullOpacityBottom;
-    private LinearLayoutManager mLayoutManager;
     public int mStartingPosition;
     private int mArticlePosition;
     private boolean mIsTransitioning;
-    private long mBackgroundImageFadeMillis;
-    //private int mAlbumPosition;
 
 
     Typeface rosario;
@@ -144,11 +140,11 @@ public class ArticleDetailFragment extends Fragment implements
         }
 
         mIsCard = getResources().getBoolean(R.bool.detail_is_card);
-//        mStatusBarFullOpacityBottom = getResources().getDimensionPixelSize(
-//                R.dimen.detail_card_top_margin);
-        if (Build.VERSION.SDK_INT >= 21) {
-            getActivity().getWindow().setStatusBarColor(Color.TRANSPARENT);
-        }
+        mStatusBarFullOpacityBottom = getResources().getDimensionPixelSize(
+                R.dimen.detail_card_top_margin);
+//        if (Build.VERSION.SDK_INT >= 21) {
+//            getActivity().getWindow().setStatusBarColor(Color.TRANSPARENT);
+//        }
         setHasOptionsMenu(true);
     }
 
@@ -185,7 +181,7 @@ public class ArticleDetailFragment extends Fragment implements
             @Override
             public void onScrollChanged() {
                 mScrollY = mScrollView.getScrollY();
-                getActivityCast().onUpButtonFloorChanged(mItemId, ArticleDetailFragment.this);
+                //getActivityCast().onUpButtonFloorChanged(mItemId, ArticleDetailFragment.this);
                 mPhotoContainerView.setTranslationY((int) (mScrollY - mScrollY / PARALLAX_FACTOR));
                 updateStatusBar();
             }
@@ -298,19 +294,48 @@ public class ArticleDetailFragment extends Fragment implements
             bodyView.setText(Html.fromHtml(mCursor.getString(ArticleLoader.Query.BODY).replaceAll("(\r\n\r\n|\n\n)", "<br /><br />")));
             bodyView.setMovementMethod(new LinkMovementMethod());
 
-            String image_url = mCursor.getString(ArticleLoader.Query.PHOTO_URL);
-            RequestCreator backgroundImageRequest = Picasso.with(getActivity())
+            final String image_url = mCursor.getString(ArticleLoader.Query.PHOTO_URL);
+            Picasso.with(getActivity())
                     .load(image_url)
-//                    .placeholder(R.drawable.empty_detail)
-//                    .error(R.drawable.empty_detail)
-                    .fit().centerCrop();
+                    .networkPolicy(NetworkPolicy.OFFLINE)
+                    .into(mPhotoView, new Callback() {
+                        @Override
+                        public void onSuccess() {
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                if (mIsTransitioning) {
-                    backgroundImageRequest.noFade();
-                }
-            }
-            backgroundImageRequest.into(mPhotoView, mImageCallback);
+                        }
+
+                        @Override
+                        public void onError() {
+                            //Try again online if cache failed
+                            Picasso.with(getActivity())
+                                    .load(image_url)
+                                    .placeholder(R.drawable.empty_detail)
+                                    .error(R.drawable.empty_detail)
+                                    .into(mPhotoView, new Callback() {
+                                        @Override
+                                        public void onSuccess() {
+
+                                        }
+
+                                        @Override
+                                        public void onError() {
+                                            Log.v("Picasso","Could not fetch image");
+                                        }
+                                    });
+                        }
+                    });
+
+//            RequestCreator backgroundImageRequest = Picasso.with(getActivity())
+//                    .load(image_url)
+//                    .placeholder(R.drawable.empty_detail)
+//                    .error(R.drawable.empty_detail);
+//
+//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+//                if (mIsTransitioning) {
+//                    backgroundImageRequest.noFade();
+//                }
+//            }
+//            backgroundImageRequest.into(mPhotoView, mImageCallback);
             mPhotoView.setTag(bitmapLoaderTarget);
 
 
@@ -420,16 +445,16 @@ public class ArticleDetailFragment extends Fragment implements
         bindViews();
     }
 
-    public int getUpButtonFloor() {
-        if (mPhotoContainerView == null || mPhotoView.getHeight() == 0) {
-            return Integer.MAX_VALUE;
-        }
-
-        // account for parallax
-        return mIsCard
-                ? (int) mPhotoContainerView.getTranslationY() + mPhotoView.getHeight() - mScrollY
-                : mPhotoView.getHeight() - mScrollY;
-    }
+//    public int getUpButtonFloor() {
+//        if (mPhotoContainerView == null || mPhotoView.getHeight() == 0) {
+//            return Integer.MAX_VALUE;
+//        }
+//
+//        // account for parallax
+//        return mIsCard
+//                ? (int) mPhotoContainerView.getTranslationY() + mPhotoView.getHeight() - mScrollY
+//                : mPhotoView.getHeight() - mScrollY;
+//    }
 
     private void startPostponedEnterTransition() {
         if (mArticlePosition == mStartingPosition) {

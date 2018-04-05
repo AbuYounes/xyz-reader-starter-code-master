@@ -12,6 +12,8 @@
         <!-- specify enter and exit transitions -->
         <!-- options are: explode, slide, fade -->
         <item name="android:windowContentTransitions">true</item>
+        <item name="android:windowTranslucentNavigation">true</item>
+        <item name="android:windowTranslucentStatus">true</item>
         <item name="android:windowEnterTransition">@transition/detail_window_enter_transition</item>
         <item name="android:windowExitTransition">@transition/detail_window_return_transition</item>
 

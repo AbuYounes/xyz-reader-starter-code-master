@@ -19,7 +19,6 @@ import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.view.WindowInsets;
 import android.widget.ImageView;
 
 import com.example.xyzreader.R;
@@ -48,8 +47,8 @@ public class ArticleDetailActivity extends AppCompatActivity
 
     private ViewPager mPager;
     private MyPagerAdapter mPagerAdapter;
-    private View mUpButtonContainer;
-    private View mUpButton;
+//    private View mUpButtonContainer;
+//    private View mUpButton;
 
 
     private final SharedElementCallback mCallback = new SharedElementCallback() {
@@ -120,6 +119,7 @@ public class ArticleDetailActivity extends AppCompatActivity
         mPagerAdapter = new MyPagerAdapter(getFragmentManager());
         mPager = (ViewPager) findViewById(R.id.pager);
         mPager.setAdapter(mPagerAdapter);
+        mPager.setCurrentItem(mCurrentPosition);
         mPager.setPageMargin((int) TypedValue
                 .applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1, getResources().getDisplayMetrics()));
         mPager.setPageMarginDrawable(new ColorDrawable(0x22000000));
@@ -134,9 +134,10 @@ public class ArticleDetailActivity extends AppCompatActivity
             public void onPageSelected(int position) {
                 if (mCursor != null) {
                     mCursor.moveToPosition(position);
+                    mCurrentPosition = position;
                 }
                 mSelectedItemId = mCursor.getLong(ArticleLoader.Query._ID);
-                updateUpButtonPosition();
+                //updateUpButtonPosition();
             }
 
             @Override
@@ -147,32 +148,32 @@ public class ArticleDetailActivity extends AppCompatActivity
             }
         });
 
-        mUpButtonContainer = findViewById(R.id.up_container);
+//        mUpButtonContainer = findViewById(R.id.up_container);
+//
+//        mUpButton = findViewById(R.id.action_up);
+//        mUpButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                onSupportNavigateUp();
+//            }
+//        });
 
-        mUpButton = findViewById(R.id.action_up);
-        mUpButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                onSupportNavigateUp();
-            }
-        });
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            mUpButtonContainer.setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {
-                @Override
-                public WindowInsets onApplyWindowInsets(View view, WindowInsets windowInsets) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT_WATCH) {
-                        view.onApplyWindowInsets(windowInsets);
-                    }
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT_WATCH) {
-                        mTopInset = windowInsets.getSystemWindowInsetTop();
-                    }
-                    mUpButtonContainer.setTranslationY(mTopInset);
-                    updateUpButtonPosition();
-                    return windowInsets;
-                }
-            });
-        }
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+//            mUpButtonContainer.setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {
+//                @Override
+//                public WindowInsets onApplyWindowInsets(View view, WindowInsets windowInsets) {
+//                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT_WATCH) {
+//                        view.onApplyWindowInsets(windowInsets);
+//                    }
+//                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT_WATCH) {
+//                        mTopInset = windowInsets.getSystemWindowInsetTop();
+//                    }
+//                    mUpButtonContainer.setTranslationY(mTopInset);
+//                    updateUpButtonPosition();
+//                    return windowInsets;
+//                }
+//            });
+//        }
     }
 
     @Override
@@ -227,17 +228,17 @@ public class ArticleDetailActivity extends AppCompatActivity
         mPagerAdapter.notifyDataSetChanged();
     }
 
-    public void onUpButtonFloorChanged(long itemId, ArticleDetailFragment fragment) {
-        if (itemId == mSelectedItemId) {
-            mSelectedItemUpButtonFloor = fragment.getUpButtonFloor();
-            updateUpButtonPosition();
-        }
-    }
+//    public void onUpButtonFloorChanged(long itemId, ArticleDetailFragment fragment) {
+//        if (itemId == mSelectedItemId) {
+//            mSelectedItemUpButtonFloor = fragment.getUpButtonFloor();
+//            updateUpButtonPosition();
+//        }
+//    }
 
-    private void updateUpButtonPosition() {
-        int upButtonNormalBottom = mTopInset + mUpButton.getHeight();
-        mUpButton.setTranslationY(Math.min(mSelectedItemUpButtonFloor - upButtonNormalBottom, 0));
-    }
+//    private void updateUpButtonPosition() {
+//        int upButtonNormalBottom = mTopInset + mUpButton.getHeight();
+//        mUpButton.setTranslationY(Math.min(mSelectedItemUpButtonFloor - upButtonNormalBottom, 0));
+//    }
 
     private class MyPagerAdapter extends FragmentStatePagerAdapter {
         public MyPagerAdapter(FragmentManager fm) {
@@ -248,10 +249,10 @@ public class ArticleDetailActivity extends AppCompatActivity
         public void setPrimaryItem(ViewGroup container, int position, Object object) {
             super.setPrimaryItem(container, position, object);
             mCurrentDetailsFragment = (ArticleDetailFragment) object;
-            if (mCurrentDetailsFragment != null) {
-                mSelectedItemUpButtonFloor = mCurrentDetailsFragment.getUpButtonFloor();
-                updateUpButtonPosition();
-            }
+//            if (mCurrentDetailsFragment != null) {
+//                mSelectedItemUpButtonFloor = mCurrentDetailsFragment.getUpButtonFloor();
+//                updateUpButtonPosition();
+//            }
         }
 
         @Override

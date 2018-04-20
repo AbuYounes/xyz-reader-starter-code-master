@@ -259,10 +259,11 @@ public class ArticleDetailFragment extends Fragment implements
             mPhotoView.setTransitionName(String.valueOf(mArticlePosition));
         }
 
-        TextView titleView = (TextView) mRootView.findViewById(R.id.article_title);
-        TextView bylineView = (TextView) mRootView.findViewById(R.id.article_byline);
+        View textContainer = mRootView.findViewById(R.id.max_width_layout);
+        TextView titleView = (TextView) textContainer.findViewById(R.id.article_title);
+        TextView bylineView = (TextView) textContainer.findViewById(R.id.article_byline);
 
-        TextView bodyView = (TextView) mRootView.findViewById(R.id.article_body);
+        TextView bodyView = (TextView) textContainer.findViewById(R.id.article_body);
 
         bodyView.setTypeface(rosario);
 
